@@ -65,7 +65,7 @@ namespace Puzzle
             fd.Filter = "Image files (jpg, jpeg, bmp, png)|*.jpg;*.jpeg;*.bmp;*.png";
             fd.InitialDirectory = System.IO.Directory.GetCurrentDirectory();
             fd.RestoreDirectory = true;
-
+            board.SuspendLayout();
             if (fd.ShowDialog() == DialogResult.OK)
             {
                 try
@@ -97,13 +97,18 @@ namespace Puzzle
                 }
 
             }
+            board.ResumeLayout();
 
 
         }
 
-       // private Image[] puzl_im;
              
-       
+       /// <summary>
+       /// Explode image on pieces and add to grid
+       /// </summary>
+       /// <param name="bm">Bitmap array</param>
+       /// <param name="x">count columns</param>
+       /// <param name="y">count rows</param>
         private void explode(Bitmap bm, int x, int y)
         {
             int c_w = bm.Width / board.ColumnCount;
@@ -118,15 +123,13 @@ namespace Puzzle
 
                 for (int j = 0; j < y; j++)
                 {
-                    //int w = (int)board.ColumnStyles[i].Width;
-                    //int h = (int)board.RowStyles[i].Height;
                     PictureBox im = new PictureBox();
                     
-                    //im.SizeMode = PictureBoxSizeMode.Zoom;
+
                     im.Size = new Size(c_w,c_h);
                     im.Margin = new Padding(0);
                     im.Padding = new Padding(0);
-                    //im.SizeMode = PictureBoxSizeMode.StretchImage;
+
                     board.Controls.Add(im);
                     
                     TableLayoutPanelCellPosition cellPos = new TableLayoutPanelCellPosition(j,i);
@@ -136,14 +139,53 @@ namespace Puzzle
                     board.SetCellPosition(im, cellPos);
                     im.BringToFront();
                     pos_x = pos_x + c_w;
-                    //im.Dispose();
+                    im.Click += Im_Click;
+                    
                 }
                 pos_y = pos_y + c_h;
-                //                    puzl_im = new Bitmap(bm, new Rectangle(tLayout.GetColumn(Col))
+
 
             }
         }
 
+        private TableLayoutPanelCellPosition old_cell;
+        private TableLayoutPanelCellPosition new_cell;
+        private bool f_click = true;
+        private PictureBox old_i;
+        private PictureBox new_i;
+
+        private void Im_Click(object sender, EventArgs e)
+        {
+            
+
+            if (f_click)
+            {
+                board.SuspendLayout();
+                PictureBox p = (sender as PictureBox);
+                old_cell = board.GetPositionFromControl(p);
+                f_click = false;
+            } else
+            {
+                PictureBox p = (PictureBox)sender;
+                new_cell = board.GetPositionFromControl(p);
+                new_i = p;
+
+
+                board.SetCellPosition(old_i, new_cell);
+                board.SetCellPosition(new_i, old_cell);
+
+                f_click = true;
+
+                board.ResumeLayout();
+                board.Invalidate();
+            }
+
+        }
+
+        private static void change_cell(TableLayoutPanelCellPosition old_c, TableLayoutPanelCellPosition new_c)
+        {
+
+        }
     }
 }
 
